@@ -9,6 +9,10 @@ Resources:
         IndexDocument: index.html
         ErrorDocument: error.html
     DeletionPolicy: Retain
+  MyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 5
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
