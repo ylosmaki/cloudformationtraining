@@ -43,8 +43,23 @@ Resources:
       Tags:
         - Key: Name
           Value: Maija
-
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        - "eu-west-1a"
+      Instances: [!Ref MyInstance]
+      Listeners:
+        - LoadBalancerPort: '80'
+          InstancePort: '80'
+          Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: Maija
 Outputs:
+  MyLoadBalancerDNSName:
+    Description: The DNSName of the backup load balancer
+    Value: !GetAtt MyLoadBalancer.DNSName
   WebsiteURL:
     Value: !GetAtt
       - S3Bucket
