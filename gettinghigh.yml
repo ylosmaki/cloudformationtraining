@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Academy Demo CloudFormation
+Parameters:
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -30,6 +34,16 @@ Resources:
                 - !Ref S3Bucket
                 - /*
       Bucket: !Ref S3Bucket
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      AvailabilityZone: eu-west-1a
+      ImageId: !Ref LatestAmiId
+      Tags:
+        - Key: Name
+          Value: Maija
+
 Outputs:
   WebsiteURL:
     Value: !GetAtt
