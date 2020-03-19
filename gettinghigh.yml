@@ -54,20 +54,15 @@ Resources:
     Properties:
       GroupDescription: securitygroup for loadbalancer
       VpcId: vpc-32cc224b
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: Maija
 
-  MyInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t2.micro
-      AvailabilityZone: eu-west-1a
-      ImageId: !Ref LatestAmiId
-      SecurityGroupIds: [!Ref MySecurityGroup]
-      Tags:
-        - Key: Name
-          Value: Maija
   MyLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -76,7 +71,6 @@ Resources:
         - subnet-1e035878
       SecurityGroups:
         - !Ref LbSecurityGroup
-
   MyLBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -92,6 +86,33 @@ Resources:
       VpcId: vpc-32cc224b
       Port: 80
       Protocol: HTTP
+
+  MyASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: [eu-west-1a]
+      LaunchConfigurationName: !Ref MyLaunchConfig
+      MinSize: "1"
+      MaxSize: "2"
+      TargetGroupARNs:
+        - Ref: MyLBTargetGroup
+
+  MyLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !Ref LatestAmiId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash"
+              - "amazon-linux-extras install epel"
+              - "amazon-linux-extras install nginx1"
+              - "systemctl start nginx"
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      InstanceType: t2.micro
+
 Outputs:
   MyLoadBalancerDNSName:
     Description: The DNSName of the backup load balancer
