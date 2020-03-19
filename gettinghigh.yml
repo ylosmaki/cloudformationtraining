@@ -54,6 +54,9 @@ Resources:
     Properties:
       GroupDescription: securitygroup for loadbalancer
       VpcId: vpc-32cc224b
+      Tags:
+        - Key: Name
+          Value: Maija
 
   MyInstance:
     Type: AWS::EC2::Instance
@@ -66,20 +69,29 @@ Resources:
         - Key: Name
           Value: Maija
   MyLoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      AvailabilityZones:
-        - "eu-west-1a"
-      Instances: [!Ref MyInstance]
-      SecurityGroups: [!Ref LbSecurityGroup]
-      Listeners:
-        - LoadBalancerPort: '80'
-          InstancePort: '80'
-          Protocol: HTTP
-      Tags:
-        - Key: Name
-          Value: Maija
+      Subnets:
+        - subnet-018ba049
+        - subnet-1e035878
+      SecurityGroups:
+        - !Ref LbSecurityGroup
 
+  MyLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MyLBTargetGroup
+  MyLBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: vpc-32cc224b
+      Port: 80
+      Protocol: HTTP
 Outputs:
   MyLoadBalancerDNSName:
     Description: The DNSName of the backup load balancer
