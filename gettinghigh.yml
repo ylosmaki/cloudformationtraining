@@ -1,9 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Academy Demo CloudFormation
+
 Parameters:
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -34,12 +36,32 @@ Resources:
                 - !Ref S3Bucket
                 - /*
       Bucket: !Ref S3Bucket
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: securitygroup for EC2 and ALB
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref LbSecurityGroup
+      Tags:
+        - Key: Name
+          Value: Maija
+      VpcId: vpc-32cc224b
+  LbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: securitygroup for loadbalancer
+      VpcId: vpc-32cc224b
+
   MyInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
       AvailabilityZone: eu-west-1a
       ImageId: !Ref LatestAmiId
+      SecurityGroupIds: [!Ref MySecurityGroup]
       Tags:
         - Key: Name
           Value: Maija
@@ -49,6 +71,7 @@ Resources:
       AvailabilityZones:
         - "eu-west-1a"
       Instances: [!Ref MyInstance]
+      SecurityGroups: [!Ref LbSecurityGroup]
       Listeners:
         - LoadBalancerPort: '80'
           InstancePort: '80'
@@ -56,6 +79,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Maija
+
 Outputs:
   MyLoadBalancerDNSName:
     Description: The DNSName of the backup load balancer
